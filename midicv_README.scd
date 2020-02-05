@@ -16,11 +16,11 @@ d = CtkSynthDef(\noiTest, {|outbus=0, amp=0, pan=0, scaleAmp=0.5, midiLag=0.1|
 )
 
 // create 2 notes
-~noi1 = d.note.outbus_(2).pan_(-1).play;
-~noi2 = d.note.outbus_(2).pan_(1).play;
+~noi1 = d.note.outbus_(0).pan_(-1).play;
+~noi2 = d.note.outbus_(0).pan_(1).play;
 
 // create a MIDI Control Value for each note's amp
-~midiVol1 = MIDICV(0, \unipolar.asSpec).cc(1);
+~midiVol1 = MIDICV(0.dbamp, \unipolar.asSpec).cc(1);
 ~midiVol2 = MIDICV().cc(2);		// defaults to initVal 0, spec: unipolar
 
 // now connect the control to the note's amp method
@@ -65,6 +65,13 @@ f = {|val| val.ampdb.postln};	// post the amp values in dB
 ~midiVol1.postConnections // shows connected function or [object, method]
 ~midiVol1.connectedFunctions
 ~midiVol1.connectedMethods
+
+// for devices with feedback for the value of control messages
+// (e.g. motorized faders) MIDICV can update device's state
+// when the class's value changes programmaticaly
+// this assumes the same cc number for incoming and outgoing messages
+~midiVol1.mirrorHWCC(MIDIOut.newByName("X-TOUCH COMPACT", "X-TOUCH COMPACT"));
+~midiVol1.value_(-12.dbamp);
 
 
 /* TOGGLE BUTTON FUNCTIONALITY */
