@@ -1,6 +1,6 @@
 GenericCV {
 	classvar <>defaultValue, <>defaultSpec, <>debug=false;
-	var <value, <spec;
+	var <value, <spec, <lastInput;
 	var <>dependantAdded=false;
 	var <responders;
 
@@ -30,6 +30,7 @@ GenericCV {
 
 	input_{
 		|inVal|
+		lastInput = inVal;
 		this.value_(spec.map(inVal));
 		this.changed(\input, inVal);
 	}
@@ -78,6 +79,7 @@ GenericCV {
 		// TODO: check if the dependent exists
 		this.addDependant(dep);
 		this.dependantAdded = true;
+		this.changed(\value, this.value); //update connected objects
 	}
 
 	disconnect { |objFuncOrResp, performMethod|
@@ -178,7 +180,7 @@ MIDICV : NumericCV {
 	var <midiDef, func, isOwned=false;
 	var <ccNum, <midiChan; //
 	var <midiOut, <>toggleOnMode=1, <destPortIdx; //<toggleState,
-	var <toggleCV, toggleFunc, mirrorHWFunc;
+	var <toggleCV, toggleFunc, mirrorHWFunc, mirrorHWCCFunc;
 	var ccNumOffset = 1000, ccKey;
 
 	cc {
@@ -302,9 +304,11 @@ MIDICV : NumericCV {
 
 	// create a CV to hold the toggle state
 	makeToggle {
-		|initState=0|
+		|initState|
 		midiDef ?? {".cc_ hasn't yet been set on this MIDIDV".throw};
 		if( midiDef.isKindOf(Array).not ) {"this MIDICV has not been set to be .button(noteNum)".throw};
+
+		initState = this.value ? 0;
 
 		// a CV to hold the toggle state
 		toggleCV = NumericCV(0, \unipolar.asSpec);
@@ -330,7 +334,7 @@ MIDICV : NumericCV {
 	// TODO: investigate onMode: blinking (2)
 	mirrorHWToggle {
 		|destPort=0, onMode=1|
-		toggleCV ?? {"Toggle not yet created! Use .createToggle to initialize the toggle mode".throw};
+		toggleCV ?? {"Toggle not yet created! Use .makeToggle to initialize the toggle mode".throw};
 
 		destPort.class.name.switch(
 			\MIDIEndPoint, {
@@ -360,12 +364,52 @@ MIDICV : NumericCV {
 		};
 
 		this.connectTo(mirrorHWFunc);
-		mirrorHWFunc.value(0); // init with fake release message
+		mirrorHWFunc.value(toggleCV.value); // init with actual message
 	}
 
 	stopMirrorHWToggle {
 		mirrorHWFunc !? this.disconnect(mirrorHWFunc);
 		midiChan !? {midiOut.noteOff(midiChan, this.ccNum, 0)};
+		midiOut=nil;
+	}
+
+	mirrorHWCC {
+		|destPort=0, mirrorOnInput=false|
+		ccNum ?? {"Controller number is not set. Can't update device state without setting the cc number".throw};
+
+		destPort.class.name.switch(
+			\MIDIEndPoint, {
+				midiOut = MIDIOut.newByName(destPort.device, destPort.name);
+				midiOut.latency_(0);
+			},
+			\MIDIOut, {
+				midiOut = destPort;
+			},
+			{//assumes SimpleNumber - port index
+				destPortIdx = destPort;
+				midiOut = MIDIOut(destPort);
+				midiOut.latency_(0);
+			}
+		);
+
+		mirrorHWCCFunc = {
+			var thisChan = this.midiChan ? 0;
+			var inVal = (this.lastInput ? 0 * 127).asInteger;
+			var cvVal = (this.input * 127).asInteger;
+			// "inVal: ".post; inVal.postln;
+			// "cvVal: ".post; cvVal.postln;
+			if(inVal != cvVal || mirrorOnInput || this.lastInput.isNil, {
+				midiOut.control(0, this.ccNum, cvVal);
+			});
+		};
+
+		this.connectTo(mirrorHWCCFunc);
+		mirrorHWCCFunc.value; // init with actual message
+	}
+
+	stopMirrorHWCC {
+		mirrorHWCCFunc !? this.disconnect(mirrorHWCCFunc);
+		// midiChan !? {midiOut.noteOff(midiChan, this.ccNum, 0)};
 		midiOut=nil;
 	}
 
