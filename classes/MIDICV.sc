@@ -314,6 +314,8 @@ MIDICV : NumericCV {
 		toggleCV = NumericCV(0, \unipolar.asSpec);
 		toggleCV.value_(initState);
 
+		toggleFunc !? {this.disconnect(toggleFunc)};
+
 		toggleFunc = { |val|
 			// set the toggle state on the push (val==1)
 			// TODO: make it possible to set on release
@@ -399,7 +401,7 @@ MIDICV : NumericCV {
 			// "inVal: ".post; inVal.postln;
 			// "cvVal: ".post; cvVal.postln;
 			if(inVal != cvVal || mirrorOnInput || this.lastInput.isNil, {
-				midiOut.control(0, this.ccNum, cvVal);
+				midiOut.control(thisChan, this.ccNum, cvVal);
 			});
 		};
 
