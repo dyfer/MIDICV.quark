@@ -356,6 +356,8 @@ MIDICV : NumericCV {
 		{ "onMode must be 1 (solid) or 2 (blinking). Defaulting to 1.".warn; 1 }
 		{ onMode };
 
+		mirrorHWFunc !? {this.disconnect(mirrorHWFunc)};
+
 		mirrorHWFunc = { |hwButtonVal|
 			midiChan.isNil.if( {
 				"no MIDI chan set yet, assuming channel 0 for initial state".warn;
@@ -393,6 +395,8 @@ MIDICV : NumericCV {
 				midiOut.latency_(0);
 			}
 		);
+
+		mirrorHWCCFunc !? {this.disconnect(mirrorHWCCFunc)};
 
 		mirrorHWCCFunc = {
 			var thisChan = this.midiChan ? 0;
