@@ -5,6 +5,8 @@ MIDIClient.init;
 // MIDIIn.connect(0, MIDIClient.sources.at(0)); // connect just a specific controller
 MIDIIn.connectAll
 
+MIDIFunc.trace(true) // have a look at the incoming midi data
+
 ( // a synth to test with
 d = CtkSynthDef(\noiTest, {|outbus=0, amp=0, pan=0, scaleAmp=0.5, midiLag=0.1|
 	Out.ar(outbus,
@@ -62,9 +64,9 @@ f = {|val| val.ampdb.postln};	// post the amp values in dB
 ~midiVol1.enable
 
 // introspect...
-~midiVol1.postConnections // shows connected function or [object, method]
-~midiVol1.connectedFunctions
-~midiVol1.connectedMethods
+~midiVol1.postConnections 		// shows connected functions or [object, method]
+~midiVol1.connectedFunctions	// shows connected functions only
+~midiVol1.connectedMethods		// shows connected [object, method]'s only
 
 // for devices with feedback for the value of control messages
 // (e.g. motorized faders) MIDICV can update device's state
