@@ -73,7 +73,8 @@ f = {|val| val.ampdb.postln};	// post the amp values in dB
 // when the class's value changes programmaticaly
 // this assumes the same cc number for incoming and outgoing messages
 ~midiVol1.mirrorHWCC(MIDIOut.newByName("X-TOUCH COMPACT", "X-TOUCH COMPACT"));
-~midiVol1.value_(-12.dbamp);
+~midiVol1.value_(-12.dbamp); // does NOT fire connected functions/objects
+~midiVol1.valueAction_(-12.dbamp); // fires connected functions/objects
 
 
 /* TOGGLE BUTTON FUNCTIONALITY */

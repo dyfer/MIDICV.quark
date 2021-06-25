@@ -15,23 +15,24 @@ GenericCV {
 		spec = inSpec ?? defaultSpec.copy;
 	}
 
-	value_{
-		|inVal|
-
+	value_{|inVal|
 		inVal = spec.constrain(inVal);
-
 		// removed same-value setting because, e.g. noteOn will always send the same message
 		// if ((value != inVal) or: dependantAdded) {
-			value = inVal;
-			this.changed(\value, value);
-			dependantAdded = false;
+		value = inVal;
+		this.changed(\value, value);
+		dependantAdded = false;
 	// }
+	}
+	valueAction_{|inVal|
+		this.value_(inVal);
+		this.changed(\valueAction, this.value);
 	}
 
 	input_{
 		|inVal|
 		lastInput = inVal;
-		this.value_(spec.map(inVal));
+		this.valueAction_(spec.map(inVal));
 		this.changed(\input, inVal);
 	}
 
@@ -51,7 +52,7 @@ GenericCV {
 		}
 	}
 
-	connectTo { |objOrFunc, performMethod| //TODO: , useInput=false|
+	connectTo { |objOrFunc, performMethod, runOnValueOnly = false| //TODO: , useInput=false| // runOnValue - update dependent function (only applies to functions) on .value, instead of .valueAction; for updating MIDI controller status etc
 		var dep;
 
 		dep = if (objOrFunc.isKindOf(Function)) {
@@ -60,7 +61,7 @@ GenericCV {
 				^this
 			};
 
-			FuncResponder(objOrFunc, this);
+			FuncResponder(objOrFunc, this, runOnValueOnly);
 		} {
 			this.connectedMethods.do{|objMthd|
 				var obj, method;
@@ -71,7 +72,7 @@ GenericCV {
 				}
 			};
 
-			MethodResponder(objOrFunc, performMethod, this);
+			MethodResponder(objOrFunc, performMethod, this, runOnValueOnly);
 		};
 		dep.isNil{^this}; // break
 
@@ -326,7 +327,7 @@ MIDICV : NumericCV {
 				);
 			};
 		};
-		this.connectTo(toggleFunc);
+		this.connectTo(toggleFunc, runOnValueOnly: true);
 	}
 
 	toggleState {^toggleCV.value}
@@ -367,7 +368,7 @@ MIDICV : NumericCV {
 			});
 		};
 
-		this.connectTo(mirrorHWFunc);
+		this.connectTo(mirrorHWFunc, runOnValueOnly: true);
 		mirrorHWFunc.value(toggleCV.value); // init with actual message
 	}
 
@@ -409,7 +410,7 @@ MIDICV : NumericCV {
 			});
 		};
 
-		this.connectTo(mirrorHWCCFunc);
+		this.connectTo(mirrorHWCCFunc, runOnValueOnly: true);
 		mirrorHWCCFunc.value; // init with actual message
 	}
 
@@ -580,15 +581,17 @@ MIDICV : NumericCV {
 }
 
 FuncResponder {
-	var <func, <replyToObj;
+	var <func, <replyToObj, <>runOnValueOnly;
 
-	*new{ |func, replyToObj|
-		^super.newCopyArgs(func, replyToObj)
+	*new{ |func, replyToObj, runOnValueOnly = false|
+		^super.newCopyArgs(func, replyToObj, runOnValueOnly)
 	}
 
 	update { |object, what ...args|
+		var method;
+		method = if(runOnValueOnly) {\value} {\valueAction};
 		if (object == replyToObj) {
-			if (what == \value) {
+			if (what == method) {
 				func.(*args)
 			}
 		}
@@ -596,9 +599,9 @@ FuncResponder {
 }
 
 MethodResponder {
-	var <receiver, <method, <replyToObj;
+	var <receiver, <method, <replyToObj, <>runOnValueOnly;
 
-	*new{ |receiver, methodName, replyToObj|
+	*new{ |receiver, methodName, replyToObj, runOnValueOnly = false|
 		var ctktest = false;
 		methodName = (methodName ? \value_).asSymbol;
 
@@ -621,12 +624,14 @@ MethodResponder {
 			}
 		};
 
-		^super.newCopyArgs(receiver, methodName, replyToObj)
+		^super.newCopyArgs(receiver, methodName, replyToObj, runOnValueOnly)
 	}
 
 	update { |object, what ...args|
+		var method;
+		method = if(runOnValueOnly) {\value} {\valueAction};
 		if (object == replyToObj) {
-			if (what == \value) {
+			if (what == method) {
 				receiver.perform(method, *args);
 			}
 		}
