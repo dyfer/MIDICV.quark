@@ -400,8 +400,8 @@ MIDICV : NumericCV {
 
 		mirrorHWCCFunc = {
 			var thisChan = this.midiChan ? 0;
-			var inVal = (this.lastInput ? 0 * 127).asInteger;
-			var cvVal = (this.input * 127).asInteger;
+			var inVal = (this.lastInput ? 0 * 127).round(1).asInteger;
+			var cvVal = (this.input * 127).round(1).asInteger;
 			// "inVal: ".post; inVal.postln;
 			// "cvVal: ".post; cvVal.postln;
 			if(inVal != cvVal || mirrorOnInput || this.lastInput.isNil, {
