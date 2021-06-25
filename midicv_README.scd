@@ -89,12 +89,15 @@ f = {|val| val.ampdb.postln};	// post the amp values in dB
 g = {|val| postf("My control value: %\n", val)};
 ~midiBut.connectTo(g);			// remember to connect it!
 // ...this is still useful for other types of instrument controls and triggers
+~midiBut.disconnect(g);
 
 // But for toggling...
 // need to explicitly make a toggle signal
 ~midiBut.makeToggle;
 // this creates a NumericCV internally to keep track of it's "toggle" state:
-~midiBut.toggleCV
+~midiBut.toggleCV.valueAction_(0);
+~midiBut.toggleCV.value_(1);
+~midiBut.toggleCV.value
 // so that CV can be connected to functions or object's methods just like
 // a MIDICV (which is actually a subclass of NumericCV)
 e = {|val| postf("Toggled! %\n", val)};
@@ -107,7 +110,7 @@ e = {|val| postf("Toggled! %\n", val)};
 // using MIDIOut or MIDIEndPoint allows to select MIDI port by name (recommended)
 ~midiBut.mirrorHWToggle(destPort: 0)
 ~midiBut.mirrorHWToggle(destPort: MIDIOut.newByName("X-TOUCH COMPACT", "X-TOUCH COMPACT"))
-~midiBut.mirrorHWToggle(destPort: MIDIOut.findPort("X-TOUCH COMPACT", "X-TOUCH COMPACT")); // MIDIOut.findPort returns a MIDIEndPoint
+~midiBut.mirrorHWToggle(destPort: MIDIOut.findPort("X-TOUCH MINI", "X-TOUCH MINI")); // MIDIOut.findPort returns a MIDIEndPoint
 
 // NOTE: Right now, toggleState update on button push,
 //    and "val" (the MIDICV control value) is still the

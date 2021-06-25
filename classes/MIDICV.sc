@@ -320,6 +320,7 @@ MIDICV : NumericCV {
 		toggleFunc = { |val|
 			// set the toggle state on the push (val==1)
 			// TODO: make it possible to set on release
+			"in toggleFunc".postln;
 			if (val==1) {
 				toggleCV.value.asBoolean.if( // if already on
 					{ toggleCV.value_(0) }, // turn off
@@ -588,10 +589,10 @@ FuncResponder {
 	}
 
 	update { |object, what ...args|
-		var method;
-		method = if(runOnValueOnly) {\value} {\valueAction};
+		var methodCheck;
+		methodCheck = if(runOnValueOnly) {\value} {\valueAction};
 		if (object == replyToObj) {
-			if (what == method) {
+			if (what == methodCheck) {
 				func.(*args)
 			}
 		}
@@ -628,10 +629,10 @@ MethodResponder {
 	}
 
 	update { |object, what ...args|
-		var method;
-		method = if(runOnValueOnly) {\value} {\valueAction};
+		var methodCheck;
+		methodCheck = if(runOnValueOnly) {\value} {\valueAction};
 		if (object == replyToObj) {
-			if (what == method) {
+			if (what == methodCheck) {
 				receiver.perform(method, *args);
 			}
 		}
