@@ -306,7 +306,7 @@ MIDICV : NumericCV {
 	makeToggle {
 		|initState|
 		midiDef ?? {".cc_ hasn't yet been set on this MIDIDV".throw};
-		if( midiDef.isKindOf(Array).not ) {"this MIDICV has not been set to be .button(noteNum)".throw};
+		// if( midiDef.isKindOf(Array).not ) {"this MIDICV has not been set to be .button(noteNum)".throw}; // we want to be able to use this for .cc too, thus disabling this check
 
 		initState = this.value ? 0;
 
