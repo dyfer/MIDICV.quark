@@ -181,7 +181,7 @@ MIDICV : NumericCV {
 	var <ccNum, <midiChan; //
 	var <midiOut, <>toggleOnMode=1, <destPortIdx; //<toggleState,
 	var <toggleCV, toggleFunc, mirrorHWFunc, mirrorHWCCFunc;
-	var ccNumOffset = 1000, ccKey;
+	var ccKey;
 
 	cc {
 		| ccnum, chan, srcID, argTemplate, dispatcher, divisor = 127.0 |
@@ -191,7 +191,7 @@ MIDICV : NumericCV {
 		MIDICV.midiCvDict ?? {MIDICV.midiCvDict = Dictionary()};
 
 		ccNum = ccnum;
-		ccKey = ccNum + ccNumOffset;
+		ccKey = (\cc ++ ccNum ++ \ch ++ chan ++ \srcID ++ srcID).asSymbol;
 
 		overWrite = MIDICV.midiCvDict[ccKey];
 		overWrite !? {
@@ -212,7 +212,7 @@ MIDICV : NumericCV {
 		};
 
 		chan !? {midiChan = chan};
-		midiDef = MIDIdef.cc(ccNum.asSymbol, func, ccNum, chan, srcID, argTemplate, dispatcher);
+		midiDef = MIDIdef.cc(ccKey, func, ccNum, chan, srcID, argTemplate, dispatcher);
 
 		MIDICV.midiCvDict.put(ccKey, this);
 
@@ -227,7 +227,7 @@ MIDICV : NumericCV {
 		MIDICV.midiCvDict ?? {MIDICV.midiCvDict = Dictionary()};
 
 		ccNum = ccnum;
-		ccKey = ccNum + 0;
+		ccKey = (\button ++ ccNum ++ \ch ++ chan ++ \srcID ++ srcID).asSymbol;
 
 		overWrite = MIDICV.midiCvDict[ccKey];
 		overWrite !? {
@@ -249,9 +249,9 @@ MIDICV : NumericCV {
 
 		chan !? {midiChan = chan};
 		midiDef = [
-			MIDIdef.noteOn( (ccNum.asString++"_noteOn").asSymbol,
+			MIDIdef.noteOn( (ccKey ++ "_noteOn").asSymbol,
 				func, ccNum, chan, srcID, argTemplate, dispatcher ),
-			MIDIdef.noteOff( (ccNum.asString++"_noteOff").asSymbol,
+			MIDIdef.noteOff( (ccKey ++ "_noteOff").asSymbol,
 				func, ccNum, chan, srcID, argTemplate, dispatcher )
 		];
 
@@ -281,7 +281,6 @@ MIDICV : NumericCV {
 			// remove the MIDIdef currently owned by this instance
 			MIDICV.midiCvDict.removeAt(ccKey);
 			ccNum = newCcNum; // update var to new ccNum
-			ccKey = ccNum + ccNumOffset;
 
 			chan = midiChan.postln; //midiDef.chan;
 			srcID = midiDef.srcID.postln;
@@ -290,10 +289,12 @@ MIDICV : NumericCV {
 			func = midiDef.func.postln;
 			key = midiDef.key.postln;
 
+			ccKey = (\cc ++ ccNum ++ \ch ++ chan).asSymbol;
+
 			midiDef.free;
 			// create a midiDef to replace it
 			"creating new one".postln;
-			midiDef = MIDIdef.cc(ccNum.asSymbol, func, ccNum, chan, srcID, argTemplate, dispatcher);
+			midiDef = MIDIdef.cc(ccKey, func, ccNum, chan, srcID, argTemplate, dispatcher);
 			// move this instance to the new ccNum slot in the global dict
 			MIDICV.midiCvDict.put(ccKey, this);
 		}
