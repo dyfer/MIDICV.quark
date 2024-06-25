@@ -196,11 +196,11 @@ MIDICV : NumericCV {
 		overWrite = MIDICV.midiCvDict[ccKey];
 		overWrite !? {
 			// the former MIDICV will be overwritten in the global dict
-			format("Overwriting MIDIdef: %", ccNum).warn;
+			format("Overwriting MIDIdef: %", ccKey).warn;
 			overWrite.free;
 			overWrite = nil;
 			responders = nil;
-			format("Overwriting MIDIdef: %", ccNum).warn;
+			// format("Overwriting MIDIdef: %", ccKey).warn;
 		};
 
 
@@ -232,11 +232,11 @@ MIDICV : NumericCV {
 		overWrite = MIDICV.midiCvDict[ccKey];
 		overWrite !? {
 			// the former MIDICV will be overwritten in the global dict
-			format("Overwriting MIDIdef: %", ccNum).warn;
+			format("Overwriting MIDIdef: %", ccKey).warn;
 			overWrite.free;
 			overWrite = nil;
 			responders = nil;
-			format("Overwriting MIDIdef: %", ccNum).warn;
+			// format("Overwriting MIDIdef: %", ccKey).warn;
 		};
 
 
