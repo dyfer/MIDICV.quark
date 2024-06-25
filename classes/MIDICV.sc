@@ -634,6 +634,7 @@ MethodResponder {
 	}
 }
 
+// Note: MIDICtl doesn't support overlapping CC numbers from multiple controllers, neither differentiated by a channel number, nor by srcID
 MIDICtl {
 	// copyArgs
 	var <>divisor, <func;
